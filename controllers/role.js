@@ -2,41 +2,42 @@ import Role from '../Models/Role.js';
 
 export const createRole = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, permissions } = req.body;
     const existing = await Role.findOne({ name });
     if (existing) return res.status(400).json({ message: 'Role already exists' });
 
-    const role = new Role({ name });
-    await role.save();
-    res.status(201).json({ message: 'Role created successfully', role });
+    const role = await Role.create({ name, permissions });
+    res.json({ message: 'Role created successfully', role });
   } catch (err) {
-    res.status(500).json({ message: 'Error creating role', error: err.message });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const editRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, permissions } = req.body;
+    const role = await Role.findByIdAndUpdate(id, { name, permissions }, { new: true });
+    res.json({ message: 'Role updated successfully', role });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 export const getRoles = async (req, res) => {
   try {
     const roles = await Role.find();
-    res.status(200).json(roles);
+    res.json(roles);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching roles', error: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
-export const updateRole = async (req, res) => {
+export const deleteRole = async (req, res) => {
   try {
-    const { name } = req.body;
-    const updated = await Role.findByIdAndUpdate(req.params.id, { name }, { new: true });
-    res.json(updated);
+    await Role.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Role deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-export const deleteRole = async (req, res) => {
-  try {
-    await Role.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Role deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
